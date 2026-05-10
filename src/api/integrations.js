@@ -2,14 +2,19 @@ import { supabase } from './supabase';
 
 export const CoreAPI = {
   SendEmail: async (params) => {
-    const { data, error } = await supabase.functions.invoke('send-email', {
-      body: params
-    });
-    if (error) {
-      console.error("Email sending failed:", error);
-      throw error;
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: params
+      });
+      if (error) {
+        console.warn("Email edge function not configured or failed:", error);
+        return null;
+      }
+      return data;
+    } catch (e) {
+      console.warn("Email edge function not configured:", e);
+      return null;
     }
-    return data;
   },
   
   UploadFile: async ({ file }) => {
