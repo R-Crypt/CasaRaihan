@@ -88,97 +88,139 @@ export default function Rooms() {
         </div>
       </div>
 
+const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
+  const defaultImage = `https://r1imghtlak.mmtcdn.com/e6bbce02-8d0e-4a4f-bca2-ca902aac9a92.jpg?&output-quality=75&output-format=jpg`;
+  const mainImage = room.image_url || defaultImage;
+  const galleryImages = room.gallery || [];
+  
+  // Combine main image with gallery, removing duplicates/empties
+  const allImages = Array.from(new Set([mainImage, ...galleryImages])).filter(Boolean);
+  
+  const [activeImage, setActiveImage] = useState(allImages[0] || defaultImage);
+
+  return (
+    <Card className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+      <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
+        {/* Image Section */}
+        <div className={`flex flex-col ${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
+          <div className="relative h-64 md:h-80 w-full shrink-0">
+            <img 
+              src={activeImage}
+              alt={room.name}
+              className="w-full h-full object-cover absolute inset-0"
+            />
+            {isAvailable && (
+              <div className="absolute top-4 right-4">
+                <Badge className="bg-amber-700 text-white">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Available
+                </Badge>
+              </div>
+            )}
+          </div>
+          
+          {/* Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="flex gap-2 p-3 overflow-x-auto bg-gray-50 border-t">
+              {allImages.map((img, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setActiveImage(img)}
+                  className={`w-16 h-16 shrink-0 rounded-md border-2 overflow-hidden transition-all ${
+                    activeImage === img ? 'border-amber-700 shadow-md ring-2 ring-amber-700/20' : 'border-transparent hover:border-gray-300 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <CardContent className="p-8 md:p-12 flex flex-col justify-center">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-light text-gray-800 mb-2">{room.name}</h2>
+              <div className="w-12 h-px bg-amber-600 mb-4" />
+              <p className="text-gray-600 leading-relaxed">
+                {room.description || "Experience comfort and tranquility in this beautifully designed room with modern amenities and stunning views."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+              {room.bed_type && (
+                <div className="flex items-center gap-2">
+                  <Bed className="w-4 h-4 text-amber-700" />
+                  <span>{room.bed_type}</span>
+                </div>
+              )}
+              {room.max_guests && (
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-amber-700" />
+                  <span>Up to {room.max_guests} guests</span>
+                </div>
+              )}
+              {room.view && (
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-amber-700" />
+                  <span>{room.view}</span>
+                </div>
+              )}
+            </div>
+
+            {room.amenities && room.amenities.length > 0 && (
+              <div>
+                <h4 className="font-medium text-gray-800 mb-3">Amenities</h4>
+                <div className="flex flex-wrap gap-2">
+                  {room.amenities.map((amenity, i) => (
+                    <Badge key={i} variant="secondary" className="bg-gray-100">
+                      {amenity}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-6 border-t">
+              <div>
+                <p className="text-3xl font-light text-gray-800">
+                  ₹{room.price_per_night?.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500">per night</p>
+              </div>
+              {isAvailable ? (
+                <Button 
+                  onClick={() => onBookNow(room)}
+                  className="bg-amber-700 hover:bg-amber-800 text-white px-8 py-6"
+                >
+                  Book Now
+                </Button>
+              ) : (
+                <div className="text-center">
+                  <p className="text-red-600 font-medium mb-2">Not Available</p>
+                  <p className="text-sm text-gray-500">Under renovation</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </div>
+    </Card>
+  );
+};
+
       {/* Rooms Grid */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="space-y-12">
           {rooms.map((room, index) => (
-            <Card key={room.id} className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-              <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
-                {/* Image */}
-                <div className={`relative h-80 md:h-auto ${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
-                  <img 
-                    src={room.image_url || `https://r1imghtlak.mmtcdn.com/e6bbce02-8d0e-4a4f-bca2-ca902aac9a92.jpg?&output-quality=75&output-format=jpg`}
-                    alt={room.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-amber-700 text-white">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Available
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <CardContent className="p-8 md:p-12 flex flex-col justify-center">
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-3xl font-light text-gray-800 mb-2">{room.name}</h2>
-                      <div className="w-12 h-px bg-amber-600 mb-4" />
-                      <p className="text-gray-600 leading-relaxed">
-                        {room.description || "Experience comfort and tranquility in this beautifully designed room with modern amenities and stunning views."}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                      {room.bed_type && (
-                        <div className="flex items-center gap-2">
-                          <Bed className="w-4 h-4 text-amber-700" />
-                          <span>{room.bed_type}</span>
-                        </div>
-                      )}
-                      {room.max_guests && (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-amber-700" />
-                          <span>Up to {room.max_guests} guests</span>
-                        </div>
-                      )}
-                      {room.view && (
-                        <div className="flex items-center gap-2">
-                          <Eye className="w-4 h-4 text-amber-700" />
-                          <span>{room.view}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {room.amenities && room.amenities.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-gray-800 mb-3">Amenities</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.map((amenity, i) => (
-                            <Badge key={i} variant="secondary" className="bg-gray-100">
-                              {amenity}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-6 border-t">
-                      <div>
-                        <p className="text-3xl font-light text-gray-800">
-                          ₹{room.price_per_night?.toLocaleString()}
-                        </p>
-                        <p className="text-sm text-gray-500">per night</p>
-                      </div>
-                      {isRoomCurrentlyAvailable(room.id) ? (
-                        <Button 
-                          onClick={() => handleBookNow(room)}
-                          className="bg-amber-700 hover:bg-amber-800 text-white px-8 py-6"
-                        >
-                          Book Now
-                        </Button>
-                      ) : (
-                        <div className="text-center">
-                          <p className="text-red-600 font-medium mb-2">Not Available</p>
-                          <p className="text-sm text-gray-500">Under renovation</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
+            <RoomCard 
+              key={room.id} 
+              room={room} 
+              index={index} 
+              isAvailable={isRoomCurrentlyAvailable(room.id)}
+              onBookNow={handleBookNow} 
+            />
           ))}
         </div>
 
