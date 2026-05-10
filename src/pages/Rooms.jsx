@@ -7,87 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Bed, Users, Eye, Sparkles } from 'lucide-react';
 import BookingModal from '../components/booking/BookingModal';
 
-export default function Rooms() {
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-
-  const { data: rooms = [], isLoading } = useQuery({
-    queryKey: ['rooms'],
-    queryFn: () => RoomAPI.list(),
-  });
-
-  const { data: allBookings = [] } = useQuery({
-    queryKey: ['all-room-bookings'],
-    queryFn: () => BookingAPI.list(),
-  });
-
-  const { data: allBlockedDates = [] } = useQuery({
-    queryKey: ['all-blocked-dates'],
-    queryFn: () => BlockedDateAPI.list(),
-  });
-
-  const isRoomCurrentlyAvailable = (roomId) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Check if room is blocked
-    const isBlocked = allBlockedDates.some(block => {
-      if (block.room_id !== roomId) return false;
-      const blockStart = new Date(block.start_date);
-      const blockEnd = new Date(block.end_date);
-      blockStart.setHours(0, 0, 0, 0);
-      blockEnd.setHours(0, 0, 0, 0);
-      return today >= blockStart && today <= blockEnd;
-    });
-
-    return !isBlocked;
-  };
-
-  const handleBookNow = async (room) => {
-    if (!isRoomCurrentlyAvailable(room.id)) {
-      return;
-    }
-    
-    // Check if user is logged in
-    const isAuthenticated = await auth.isAuthenticated();
-    if (!isAuthenticated) {
-      // Redirect to login, then come back to rooms page
-      auth.redirectToLogin(window.location.href);
-      return;
-    }
-    
-    setSelectedRoom(room);
-    setShowBookingModal(true);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700 mx-auto" />
-          <p className="text-gray-600">Loading rooms...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative h-[60vh] bg-cover bg-center" 
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=1920&q=80')" }}>
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative h-full flex items-center justify-center text-white px-4">
-          <div className="text-center space-y-4">
-            <h1 className="text-5xl md:text-6xl font-light tracking-widest">OUR ROOMS</h1>
-            <div className="w-24 h-px bg-white/60 mx-auto" />
-            <p className="text-xl font-light text-white/90 max-w-2xl">
-              Thoughtfully designed spaces offering comfort and stunning views
-            </p>
-          </div>
-        </div>
-      </div>
-
 const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
   const defaultImage = `https://r1imghtlak.mmtcdn.com/e6bbce02-8d0e-4a4f-bca2-ca902aac9a92.jpg?&output-quality=75&output-format=jpg`;
   const mainImage = room.image_url || defaultImage;
@@ -209,6 +128,87 @@ const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
     </Card>
   );
 };
+
+export default function Rooms() {
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
+  const { data: rooms = [], isLoading } = useQuery({
+    queryKey: ['rooms'],
+    queryFn: () => RoomAPI.list(),
+  });
+
+  const { data: allBookings = [] } = useQuery({
+    queryKey: ['all-room-bookings'],
+    queryFn: () => BookingAPI.list(),
+  });
+
+  const { data: allBlockedDates = [] } = useQuery({
+    queryKey: ['all-blocked-dates'],
+    queryFn: () => BlockedDateAPI.list(),
+  });
+
+  const isRoomCurrentlyAvailable = (roomId) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if room is blocked
+    const isBlocked = allBlockedDates.some(block => {
+      if (block.room_id !== roomId) return false;
+      const blockStart = new Date(block.start_date);
+      const blockEnd = new Date(block.end_date);
+      blockStart.setHours(0, 0, 0, 0);
+      blockEnd.setHours(0, 0, 0, 0);
+      return today >= blockStart && today <= blockEnd;
+    });
+
+    return !isBlocked;
+  };
+
+  const handleBookNow = async (room) => {
+    if (!isRoomCurrentlyAvailable(room.id)) {
+      return;
+    }
+    
+    // Check if user is logged in
+    const isAuthenticated = await auth.isAuthenticated();
+    if (!isAuthenticated) {
+      // Redirect to login, then come back to rooms page
+      auth.redirectToLogin(window.location.href);
+      return;
+    }
+    
+    setSelectedRoom(room);
+    setShowBookingModal(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700 mx-auto" />
+          <p className="text-gray-600">Loading rooms...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="relative h-[60vh] bg-cover bg-center" 
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=1920&q=80')" }}>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative h-full flex items-center justify-center text-white px-4">
+          <div className="text-center space-y-4">
+            <h1 className="text-5xl md:text-6xl font-light tracking-widest">OUR ROOMS</h1>
+            <div className="w-24 h-px bg-white/60 mx-auto" />
+            <p className="text-xl font-light text-white/90 max-w-2xl">
+              Thoughtfully designed spaces offering comfort and stunning views
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Rooms Grid */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
