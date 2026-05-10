@@ -56,67 +56,36 @@ export default function BookingModal({ room, onClose }) {
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
-      // Create booking
+      // 1. Save booking to database
       const booking = await BookingAPI.create(bookingData);
-      
-      // Send email notification to owner
-      await CoreAPI.SendEmail({
-        from_name: 'Casa Raihan Booking System',
-        to: 'rayaankhaaan@gmail.com',
-        subject: `🏡 New Booking: ${bookingData.room_name}`,
-        body: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-            <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-              <h2 style="color: #92400e; margin-bottom: 20px; border-bottom: 2px solid #f59e0b; padding-bottom: 10px;">
-                🎉 New Room Booking Received!
-              </h2>
-              
-              <div style="margin: 20px 0; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-                <h3 style="color: #92400e; margin: 0 0 10px 0;">Room Details</h3>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Room:</strong> ${bookingData.room_name}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-in:</strong> ${format(parseISO(bookingData.check_in), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-out:</strong> ${format(parseISO(bookingData.check_out), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Total Nights:</strong> ${bookingData.total_nights}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Number of Guests:</strong> ${bookingData.number_of_guests}</p>
-              </div>
-              
-              <div style="margin: 20px 0; padding: 15px; background-color: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 4px;">
-                <h3 style="color: #1e40af; margin: 0 0 10px 0;">Guest Information</h3>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Name:</strong> ${bookingData.guest_name}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Email:</strong> <a href="mailto:${bookingData.guest_email}" style="color: #3b82f6;">${bookingData.guest_email}</a></p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Phone:</strong> <a href="tel:${bookingData.guest_phone}" style="color: #3b82f6;">${bookingData.guest_phone}</a></p>
-              </div>
-              
-              ${bookingData.special_requests ? `
-                <div style="margin: 20px 0; padding: 15px; background-color: #f3e8ff; border-left: 4px solid #a855f7; border-radius: 4px;">
-                  <h3 style="color: #7e22ce; margin: 0 0 10px 0;">Special Requests</h3>
-                  <p style="margin: 5px 0; color: #1f2937;">${bookingData.special_requests}</p>
-                </div>
-              ` : ''}
-              
-              <div style="margin: 20px 0; padding: 20px; background-color: #dcfce7; border-radius: 4px; text-align: center;">
-                <h3 style="color: #15803d; margin: 0 0 10px 0;">Total Amount</h3>
-                <p style="font-size: 32px; font-weight: bold; color: #15803d; margin: 0;">₹${bookingData.total_amount.toLocaleString()}</p>
-              </div>
-              
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 14px;">
-                <p>This is an automated notification from Casa Raihan Homestay booking system.</p>
-                <p>Please contact the guest to confirm the booking details.</p>
-              </div>
-            </div>
-          </div>
-        `
-      });
+
+      // 2. Fire email + SMS notifications (non-blocking – won't fail the booking)
+      try {
+        await CoreAPI.SendEmail({
+          // Re-using the existing edge-function call signature so it goes to notify-booking
+          _edge_function: 'notify-booking',
+          guest_name: bookingData.guest_name,
+          guest_email: bookingData.guest_email,
+          guest_phone: bookingData.guest_phone,
+          room_name: bookingData.room_name,
+          check_in: bookingData.check_in,
+          check_out: bookingData.check_out,
+          total_nights: bookingData.total_nights,
+          total_amount: bookingData.total_amount,
+          number_of_guests: bookingData.number_of_guests,
+          special_requests: bookingData.special_requests,
+        });
+      } catch (notifyErr) {
+        console.warn('Notification failed (booking still saved):', notifyErr);
+      }
 
       return booking;
     },
     onSuccess: () => {
       setSuccess(true);
-      setTimeout(() => {
-        onClose();
-      }, 3000);
+      setTimeout(() => { onClose(); }, 3000);
     },
-    onError: (err) => {
+    onError: () => {
       setError('Failed to create booking. Please try again.');
     }
   });

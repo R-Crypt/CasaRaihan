@@ -3,16 +3,17 @@ import { supabase } from './supabase';
 export const CoreAPI = {
   SendEmail: async (params) => {
     try {
-      const { data, error } = await supabase.functions.invoke('send-email', {
-        body: params
-      });
+      // Determine which edge function to call
+      const { _edge_function, ...body } = params;
+      const fnName = _edge_function || 'send-email';
+      const { data, error } = await supabase.functions.invoke(fnName, { body });
       if (error) {
-        console.warn("Email edge function not configured or failed:", error);
+        console.warn(`Edge function '${fnName}' not configured or failed:`, error);
         return null;
       }
       return data;
     } catch (e) {
-      console.warn("Email edge function not configured:", e);
+      console.warn('Edge function call failed:', e);
       return null;
     }
   },
