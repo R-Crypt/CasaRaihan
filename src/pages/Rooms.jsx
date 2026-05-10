@@ -57,32 +57,32 @@ const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
         </div>
 
         {/* Content */}
-        <CardContent className="p-8 md:p-12 flex flex-col justify-center">
+        <CardContent className="p-6 sm:p-8 md:p-12 flex flex-col justify-center">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-light text-gray-800 mb-2">{room.name}</h2>
               <div className="w-12 h-px bg-amber-600 mb-4" />
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                 {room.description || "Experience comfort and tranquility in this beautifully designed room with modern amenities and stunning views."}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            <div className="flex flex-wrap gap-3 sm:gap-4 text-sm text-gray-600">
               {room.bed_type && (
                 <div className="flex items-center gap-2">
-                  <Bed className="w-4 h-4 text-amber-700" />
+                  <Bed className="w-4 h-4 text-amber-700 shrink-0" />
                   <span>{room.bed_type}</span>
                 </div>
               )}
               {room.max_guests && (
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-amber-700" />
+                  <Users className="w-4 h-4 text-amber-700 shrink-0" />
                   <span>Up to {room.max_guests} guests</span>
                 </div>
               )}
               {room.view && (
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-amber-700" />
+                  <Eye className="w-4 h-4 text-amber-700 shrink-0" />
                   <span>{room.view}</span>
                 </div>
               )}
@@ -93,7 +93,7 @@ const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
                 <h4 className="font-medium text-gray-800 mb-3">Amenities</h4>
                 <div className="flex flex-wrap gap-2">
                   {room.amenities.map((amenity, i) => (
-                    <Badge key={i} variant="secondary" className="bg-gray-100">
+                    <Badge key={i} variant="secondary" className="bg-gray-100 whitespace-nowrap">
                       {amenity}
                     </Badge>
                   ))}
@@ -101,7 +101,7 @@ const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-6 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t">
               <div>
                 <p className="text-3xl font-light text-gray-800">
                   ₹{room.price_per_night?.toLocaleString()}
@@ -111,13 +111,13 @@ const RoomCard = ({ room, index, isAvailable, onBookNow }) => {
               {isAvailable ? (
                 <Button 
                   onClick={() => onBookNow(room)}
-                  className="bg-amber-700 hover:bg-amber-800 text-white px-8 py-6"
+                  className="bg-amber-700 hover:bg-amber-800 text-white w-full sm:w-auto px-8 py-6"
                 >
                   Book Now
                 </Button>
               ) : (
-                <div className="text-center">
-                  <p className="text-red-600 font-medium mb-2">Not Available</p>
+                <div className="text-center sm:text-right">
+                  <p className="text-red-600 font-medium mb-1">Not Available</p>
                   <p className="text-sm text-gray-500">Under renovation</p>
                 </div>
               )}
