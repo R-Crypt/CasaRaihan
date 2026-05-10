@@ -12,7 +12,7 @@ export default function AdminBookings() {
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['all-bookings'],
-    queryFn: () => BookingAPI.list('-created_date'),
+    queryFn: () => BookingAPI.list('-created_at'),
   });
 
   const updateStatusMutation = useMutation({
