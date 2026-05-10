@@ -219,6 +219,7 @@ export default function BookingModal({ room, onClose }) {
     const bookingData = {
       room_id: room.id,
       room_name: room.name,
+      user_id: currentUser?.id,
       ...formData,
       total_nights: nights,
       total_amount: totalAmount,
