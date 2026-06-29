@@ -17,7 +17,7 @@ export default function Home() {
     "@type": "LodgingBusiness",
     "name": "Casa Raihan",
     "description": "Nestled in the serene hills of Coorg, experience authentic hospitality where the aroma of freshly brewed coffee meets the tranquility of nature.",
-    "url": "https://casaraihan.com",
+    "url": "https://casaraihancoorg.com",
     "telephone": "+91 9480083984",
     "address": {
       "@type": "PostalAddress",

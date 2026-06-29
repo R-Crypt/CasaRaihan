@@ -11,7 +11,7 @@ export default function SEO({
   const siteName = "Casa Raihan | Homestay in Coorg";
   const fullTitle = title ? `${title} | ${siteName}` : siteName;
   const metaDescription = description || "Experience the authentic coffee planter lifestyle at Casa Raihan, a boutique homestay in Virajpet, Coorg. Discover lush plantations, valley views, and modern comforts.";
-  const url = canonicalUrl || typeof window !== 'undefined' ? window.location.href : 'https://casaraihan.com';
+  const url = canonicalUrl || typeof window !== 'undefined' ? window.location.href : 'https://casaraihancoorg.com';
   const defaultImage = "https://images.unsplash.com/photo-1511497584788-876760111969?w=1200&h=630&fit=crop";
 
   return (
