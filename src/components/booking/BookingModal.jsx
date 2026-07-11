@@ -190,8 +190,9 @@ export default function BookingModal({ room, onClose }) {
       return;
     }
 
-    const maxCapacity = room.max_guests || 10;
-    if (formData.number_of_guests > maxCapacity) {
+    const maxCapacity = Number(room.max_guests) || 10;
+    const selectedGuests = Number(formData.number_of_guests) || 0;
+    if (selectedGuests > maxCapacity) {
       setError(`Maximum capacity for this room is ${maxCapacity} guests.`);
       return;
     }
@@ -293,7 +294,16 @@ export default function BookingModal({ room, onClose }) {
                         min="1"
                         max={room.max_guests || 10}
                         value={formData.number_of_guests}
-                        onChange={(e) => setFormData({...formData, number_of_guests: parseInt(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          setFormData({...formData, number_of_guests: val});
+                          const maxCap = Number(room.max_guests) || 10;
+                          if (val > maxCap) {
+                            setError(`Maximum capacity for this room is ${maxCap} guests.`);
+                          } else {
+                            setError('');
+                          }
+                        }}
                         required
                       />
                       {formData.number_of_guests < minCapacity && (
