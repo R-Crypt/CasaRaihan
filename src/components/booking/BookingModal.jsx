@@ -11,14 +11,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import RoomCalendar from './RoomCalendar';
 
 export default function BookingModal({ room, onClose }) {
+  const isFamilySuite = room.name.toLowerCase().includes('family suite');
+  const minCapacity = isFamilySuite ? 6 : 2;
+
   const [currentUser, setCurrentUser] = useState(null);
+  const [hasAC, setHasAC] = useState(false);
   const [formData, setFormData] = useState({
     guest_name: '',
     guest_email: '',
     guest_phone: '',
     check_in: '',
     check_out: '',
-    number_of_guests: 1,
+    number_of_guests: minCapacity,
     special_requests: ''
   });
   const [selectedDates, setSelectedDates] = useState({ checkIn: null, checkOut: null });
@@ -127,7 +131,11 @@ export default function BookingModal({ room, onClose }) {
   const calculateTotal = () => {
     if (!formData.check_in || !formData.check_out) return 0;
     const nights = differenceInDays(parseISO(formData.check_out), parseISO(formData.check_in));
-    return nights > 0 ? nights * room.price_per_night : 0;
+    if (nights <= 0) return 0;
+    
+    const ratePerPerson = hasAC ? 700 : 600;
+    const chargeableGuests = Math.max(minCapacity, formData.number_of_guests || 0);
+    return nights * chargeableGuests * ratePerPerson;
   };
 
   const handleDateSelect = (dates) => {
@@ -182,14 +190,29 @@ export default function BookingModal({ room, onClose }) {
       return;
     }
 
+    const maxCapacity = room.max_guests || 10;
+    if (formData.number_of_guests > maxCapacity) {
+      setError(`Maximum capacity for this room is ${maxCapacity} guests.`);
+      return;
+    }
+
     const nights = differenceInDays(checkOut, checkIn);
-    const totalAmount = nights * room.price_per_night;
+    const ratePerPerson = hasAC ? 700 : 600;
+    const chargeableGuests = Math.max(minCapacity, formData.number_of_guests || 0);
+    const totalAmount = nights * chargeableGuests * ratePerPerson;
+
+    // Format special requests to include A/C choice for admin visibility
+    const acPrefix = `[A/C OPTION: ${hasAC ? 'With A/C' : 'Without A/C'}]`;
+    const finalSpecialRequests = formData.special_requests 
+      ? `${acPrefix}\n${formData.special_requests}`
+      : acPrefix;
 
     const bookingData = {
       room_id: room.id,
-      room_name: room.name,
+      room_name: `${room.name} (${hasAC ? 'A/C' : 'Non-A/C'})`,
       user_id: currentUser?.id,
       ...formData,
+      special_requests: finalSpecialRequests,
       total_nights: nights,
       total_amount: totalAmount,
       status: 'pending'
@@ -211,7 +234,9 @@ export default function BookingModal({ room, onClose }) {
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-light text-gray-800">{room.name}</h2>
-            <p className="text-amber-700 font-medium">₹{room.price_per_night} per night</p>
+            <p className="text-amber-700 font-medium text-sm">
+              ₹600 (Non-A/C) / ₹700 (A/C) per person per night
+            </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
@@ -268,9 +293,49 @@ export default function BookingModal({ room, onClose }) {
                         min="1"
                         max={room.max_guests || 10}
                         value={formData.number_of_guests}
-                        onChange={(e) => setFormData({...formData, number_of_guests: parseInt(e.target.value)})}
+                        onChange={(e) => setFormData({...formData, number_of_guests: parseInt(e.target.value) || 0})}
                         required
                       />
+                      {formData.number_of_guests < minCapacity && (
+                        <p className="text-[11px] text-amber-700 font-medium">
+                          Note: Minimum charge for {minCapacity} guests will apply.
+                        </p>
+                      )}
+                      <p className="text-[11px] text-gray-500">
+                        Max capacity: {room.max_guests || 10} guests.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Room Comfort Option Selector */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-800 font-medium">Room Comfort Option *</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setHasAC(false)}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all ${
+                          !hasAC
+                            ? 'border-amber-700 bg-amber-50/50 ring-2 ring-amber-700/20 text-amber-900 font-medium'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'
+                        }`}
+                      >
+                        <span className="font-semibold text-sm">Without A/C</span>
+                        <span className="text-[11px] text-gray-500 mt-1">₹600 / person / night</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setHasAC(true)}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all ${
+                          hasAC
+                            ? 'border-amber-700 bg-amber-50/50 ring-2 ring-amber-700/20 text-amber-900 font-medium'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'
+                        }`}
+                      >
+                        <span className="font-semibold text-sm">With A/C</span>
+                        <span className="text-[11px] text-gray-500 mt-1">₹700 / person / night</span>
+                      </button>
                     </div>
                   </div>
                 </>
@@ -296,14 +361,36 @@ export default function BookingModal({ room, onClose }) {
 
               {/* Summary */}
               {totalNights > 0 && (
-                <div className="bg-amber-50 p-4 rounded-lg space-y-2">
-                  <h4 className="font-medium text-gray-800">Booking Summary</h4>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">₹{room.price_per_night} × {totalNights} night{totalNights > 1 ? 's' : ''}</span>
-                    <span className="font-medium">₹{totalAmount.toLocaleString()}</span>
+                <div className="bg-amber-50 p-4 rounded-lg space-y-2 border border-amber-200/50">
+                  <h4 className="font-medium text-gray-800 text-sm">Price Breakdown</h4>
+                  
+                  <div className="space-y-1.5 text-xs text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Comfort option:</span>
+                      <span className="font-medium text-gray-800">{hasAC ? 'With A/C' : 'Without A/C'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rate per person / night:</span>
+                      <span className="font-medium text-gray-800">₹{hasAC ? 700 : 600}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Guests count:</span>
+                      <span className="font-medium text-gray-800">
+                        {formData.number_of_guests} {formData.number_of_guests < minCapacity && `(Charged for minimum ${minCapacity})`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rate per night:</span>
+                      <span className="font-medium text-gray-800">₹{(Math.max(minCapacity, formData.number_of_guests) * (hasAC ? 700 : 600)).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Nights:</span>
+                      <span className="font-medium text-gray-800">{totalNights} night{totalNights > 1 ? 's' : ''}</span>
+                    </div>
                   </div>
-                  <div className="border-t pt-2 flex justify-between">
-                    <span className="font-medium text-gray-800">Total Amount</span>
+
+                  <div className="border-t border-amber-200/60 pt-2 flex justify-between items-center mt-2">
+                    <span className="font-medium text-gray-800 text-sm">Total Amount</span>
                     <span className="font-bold text-amber-700 text-lg">₹{totalAmount.toLocaleString()}</span>
                   </div>
                 </div>

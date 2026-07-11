@@ -134,6 +134,11 @@ function RoomCard({ room, isAvailable, onBookNow }) {
 
   const openLightbox = (idx) => { setLightboxStart(idx); setLightboxOpen(true); };
 
+  const isFamilySuite = room.name.toLowerCase().includes('family suite');
+  const minGuests = isFamilySuite ? 6 : 2;
+  const basePriceNonAC = minGuests * 600;
+  const basePriceAC = minGuests * 700;
+
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-100">
       {/* Image + Gallery */}
@@ -229,8 +234,15 @@ function RoomCard({ room, isAvailable, onBookNow }) {
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-4">
           <div>
-            <p className="text-2xl sm:text-3xl font-light text-gray-900">₹{room.price_per_night?.toLocaleString()}</p>
-            <p className="text-xs text-gray-400 mt-0.5">per night</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl sm:text-2xl font-light text-gray-900">₹{basePriceNonAC.toLocaleString()}</span>
+              <span className="text-gray-400 text-sm">to</span>
+              <span className="text-xl sm:text-2xl font-light text-gray-700">₹{basePriceAC.toLocaleString()}</span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">per night (Non-A/C / A/C)</p>
+            <p className="text-[10px] text-amber-700 font-semibold mt-1">
+              Min. charge: {minGuests} guests
+            </p>
           </div>
           {isAvailable ? (
             <Button
