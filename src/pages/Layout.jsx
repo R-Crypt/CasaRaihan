@@ -84,12 +84,12 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
               )}
               
-              {isAuthenticated && user?.role === 'admin' && (
+              {isAuthenticated && user && user.role === 'admin' ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">
                       <User className="w-4 h-4" />
-                      <span>{user?.full_name || 'Account'}</span>
+                      <span>{user.full_name || 'Account'}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
+              ) : null}
               
               <Link to={createPageUrl('Rooms')}>
                 <Button className="bg-amber-700 hover:bg-amber-800 text-white">
@@ -168,7 +168,7 @@ export default function Layout({ children, currentPageName }) {
               )}
               
               <div className="pt-3 border-t space-y-3">
-                {isAuthenticated && user?.role === 'admin' && (
+                {isAuthenticated && user && user.role === 'admin' ? (
                   <>
                     <Button 
                       variant="outline" 
@@ -179,7 +179,7 @@ export default function Layout({ children, currentPageName }) {
                       }}
                     >
                       <User className="w-4 h-4" />
-                      {user?.full_name || 'My Profile'}
+                      {user.full_name || 'My Profile'}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -193,7 +193,7 @@ export default function Layout({ children, currentPageName }) {
                       Logout
                     </Button>
                   </>
-                )}
+                ) : null}
                 
                 <Link to={createPageUrl('Rooms')} onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full bg-amber-700 hover:bg-amber-800 text-white">
