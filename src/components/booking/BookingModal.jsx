@@ -34,11 +34,13 @@ export default function BookingModal({ room, onClose }) {
     const loadUser = async () => {
       try {
         const user = await auth.me();
+        if (!user) return;
+        
         setCurrentUser(user);
         setFormData(prev => ({
           ...prev,
-          guest_name: user.full_name || '',
-          guest_email: user.email,
+          guest_name: user?.full_name || '',
+          guest_email: user?.email || '',
         }));
       } catch (error) {
         // User not logged in, which is perfectly fine for guest mode.
