@@ -260,12 +260,29 @@ export default function BookingModal({ room, onClose }) {
                 </Alert>
               )}
 
-              {currentUser && (
-                <>
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-gray-600 mb-1">Booking for:</p>
-                    <p className="font-medium text-gray-800">{currentUser.full_name}</p>
-                    <p className="text-sm text-gray-600">{currentUser.email}</p>
+                  <div className="grid md:grid-cols-2 gap-6 mb-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="guest_name">Full Name *</Label>
+                      <Input
+                        id="guest_name"
+                        value={formData.guest_name}
+                        onChange={(e) => setFormData({...formData, guest_name: e.target.value})}
+                        placeholder="John Doe"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="guest_email">Email Address *</Label>
+                      <Input
+                        id="guest_email"
+                        type="email"
+                        value={formData.guest_email}
+                        onChange={(e) => setFormData({...formData, guest_email: e.target.value})}
+                        placeholder="john@example.com"
+                        required
+                      />
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
@@ -343,8 +360,6 @@ export default function BookingModal({ room, onClose }) {
                       </button>
                     </div>
                   </div>
-                </>
-              )}
 
               <RoomCalendar
                 selectedDates={selectedDates}
@@ -410,7 +425,6 @@ export default function BookingModal({ room, onClose }) {
                 >
                   Cancel
                 </Button>
-                {currentUser ? (
                   <Button 
                     type="submit" 
                     className="flex-1 bg-amber-700 hover:bg-amber-800"
@@ -418,15 +432,6 @@ export default function BookingModal({ room, onClose }) {
                   >
                     {createBookingMutation.isPending ? 'Processing...' : 'Confirm Booking'}
                   </Button>
-                ) : (
-                  <Button 
-                    type="button" 
-                    onClick={() => auth.redirectToLogin()}
-                    className="flex-1 bg-amber-700 hover:bg-amber-800"
-                  >
-                    Log In to Book
-                  </Button>
-                )}
               </div>
             </form>
           )}
