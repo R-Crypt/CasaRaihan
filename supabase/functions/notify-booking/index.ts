@@ -42,7 +42,7 @@ function formatCurrency(n: number) {
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set – skipping email to", to);
-    return;
+    return { error: "RESEND_API_KEY not set", to };
   }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -52,6 +52,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     },
     body: JSON.stringify({
       from: "Casa Raihan <bookings@casaraihancoorg.com>",
+      reply_to: ADMIN_EMAIL,
       to,
       subject,
       html,
@@ -60,7 +61,9 @@ async function sendEmail(to: string, subject: string, html: string) {
   if (!res.ok) {
     const err = await res.text();
     console.error("Resend error:", err);
+    return { error: err, to };
   }
+  return { success: true, to };
 }
 
 // ── SMS via Twilio ────────────────────────────────────────────────────────────
@@ -68,7 +71,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 async function sendSMS(to: string, body: string) {
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_FROM_NUMBER) {
     console.warn("Twilio env vars not set – skipping SMS to", to);
-    return;
+    return { error: "Twilio not configured", to };
   }
   // Ensure Indian numbers have +91 prefix
   const normalized = to.startsWith("+") ? to : `+91${to.replace(/^0/, "")}`;
@@ -86,7 +89,9 @@ async function sendSMS(to: string, body: string) {
   if (!res.ok) {
     const err = await res.text();
     console.error("Twilio error:", err);
+    return { error: err, to };
   }
+  return { success: true, to };
 }
 
 // ── Email templates ───────────────────────────────────────────────────────────
@@ -229,7 +234,7 @@ serve(async (req) => {
   try {
     const booking: BookingPayload = await req.json();
 
-    const tasks: Promise<void>[] = [];
+    const tasks: Promise<any>[] = [];
 
     // Emails
     tasks.push(sendEmail(booking.guest_email, "✅ Your Casa Raihan booking is confirmed!", guestEmailHtml(booking)));
@@ -243,9 +248,9 @@ serve(async (req) => {
       tasks.push(sendSMS(ADMIN_PHONE, adminSMS(booking)));
     }
 
-    await Promise.allSettled(tasks);
+    const results = await Promise.allSettled(tasks);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

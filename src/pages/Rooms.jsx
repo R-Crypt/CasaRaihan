@@ -287,8 +287,6 @@ export default function Rooms() {
 
   const handleBookNow = async (room) => {
     if (!isRoomAvailable(room.id)) return;
-    const ok = await auth.isAuthenticated();
-    if (!ok) { auth.redirectToLogin(window.location.href); return; }
     setSelectedRoom(room);
     setShowBookingModal(true);
   };

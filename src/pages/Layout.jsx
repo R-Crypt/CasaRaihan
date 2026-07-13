@@ -84,7 +84,7 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
               )}
               
-              {isAuthenticated ? (
+              {isAuthenticated && user?.role === 'admin' && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">
@@ -103,15 +103,6 @@ export default function Layout({ children, currentPageName }) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              ) : (
-                <Button 
-                  variant="outline"
-                  onClick={() => auth.redirectToLogin()}
-                  className="gap-2"
-                >
-                  <User className="w-4 h-4" />
-                  Login
-                </Button>
               )}
               
               <Link to={createPageUrl('Rooms')}>
@@ -177,7 +168,7 @@ export default function Layout({ children, currentPageName }) {
               )}
               
               <div className="pt-3 border-t space-y-3">
-                {isAuthenticated ? (
+                {isAuthenticated && user?.role === 'admin' && (
                   <>
                     <Button 
                       variant="outline" 
@@ -202,18 +193,6 @@ export default function Layout({ children, currentPageName }) {
                       Logout
                     </Button>
                   </>
-                ) : (
-                  <Button 
-                    variant="outline"
-                    className="w-full justify-start gap-2"
-                    onClick={() => {
-                      auth.redirectToLogin();
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <User className="w-4 h-4" />
-                    Login
-                  </Button>
                 )}
                 
                 <Link to={createPageUrl('Rooms')} onClick={() => setMobileMenuOpen(false)}>
