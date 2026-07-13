@@ -46,79 +46,19 @@ export default function Profile() {
       // Update booking status
       await BookingAPI.update(booking.id, { status: 'cancelled' });
 
-      // Send email notification to admin
+      // Send cancellation emails via edge function
       await CoreAPI.SendEmail({
-        from_name: 'Casa Raihan Booking System',
-        to: 'rayaankhaaan@gmail.com',
-        subject: `🚫 Booking Cancelled: ${booking.room_name}`,
-        body: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-            <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-              <h2 style="color: #dc2626; margin-bottom: 20px; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">
-                🚫 Booking Cancellation Notice
-              </h2>
-              
-              <div style="margin: 20px 0; padding: 15px; background-color: #fee2e2; border-left: 4px solid #dc2626; border-radius: 4px;">
-                <h3 style="color: #991b1b; margin: 0 0 10px 0;">Cancelled Booking Details</h3>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Room:</strong> ${booking.room_name}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-in:</strong> ${format(parseISO(booking.check_in), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-out:</strong> ${format(parseISO(booking.check_out), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Total Nights:</strong> ${booking.total_nights}</p>
-              </div>
-              
-              <div style="margin: 20px 0; padding: 15px; background-color: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 4px;">
-                <h3 style="color: #1e40af; margin: 0 0 10px 0;">Guest Information</h3>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Name:</strong> ${booking.guest_name}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Email:</strong> <a href="mailto:${booking.guest_email}" style="color: #3b82f6;">${booking.guest_email}</a></p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Phone:</strong> <a href="tel:${booking.guest_phone}" style="color: #3b82f6;">${booking.guest_phone}</a></p>
-              </div>
-              
-              <div style="margin: 20px 0; padding: 20px; background-color: #fee2e2; border-radius: 4px; text-align: center;">
-                <h3 style="color: #991b1b; margin: 0 0 10px 0;">Refund Amount</h3>
-                <p style="font-size: 32px; font-weight: bold; color: #991b1b; margin: 0;">₹${booking.total_amount.toLocaleString()}</p>
-              </div>
-              
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 14px;">
-                <p>This booking was cancelled by the guest through their profile.</p>
-              </div>
-            </div>
-          </div>
-        `
-      });
-
-      // Send email to guest
-      await CoreAPI.SendEmail({
-        from_name: 'Casa Raihan Homestay',
-        to: booking.guest_email,
-        subject: 'Booking Cancellation Confirmation',
-        body: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-            <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-              <h2 style="color: #dc2626; margin-bottom: 20px;">Your Booking Has Been Cancelled</h2>
-              <p style="color: #1f2937;">Dear ${booking.guest_name},</p>
-              <p style="color: #1f2937;">Your booking has been successfully cancelled.</p>
-              
-              <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
-                <h3 style="color: #991b1b; margin-top: 0;">Booking Details</h3>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Room:</strong> ${booking.room_name}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-in:</strong> ${format(parseISO(booking.check_in), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Check-out:</strong> ${format(parseISO(booking.check_out), 'PPP')}</p>
-                <p style="margin: 5px 0; color: #1f2937;"><strong>Refund Amount:</strong> ₹${booking.total_amount.toLocaleString()}</p>
-              </div>
-              
-              <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #92400e; margin-top: 0;">Need Help?</h3>
-                <p style="margin: 5px 0; color: #1f2937;">If you have any questions, please contact us:</p>
-                <p style="margin: 5px 0; color: #1f2937;">📞 <a href="tel:+918904408202" style="color: #92400e;">+91 8904408202</a></p>
-                <p style="margin: 5px 0; color: #1f2937;">📧 <a href="mailto:rayaankhaaan@gmail.com" style="color: #92400e;">rayaankhaaan@gmail.com</a></p>
-              </div>
-              
-              <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 30px;">
-                We hope to welcome you at Casa Raihan Homestay in the future!
-              </p>
-            </div>
-          </div>
-        `
+        _edge_function: 'notify-booking',
+        action: 'cancellation',
+        guest_name: booking.guest_name,
+        guest_email: booking.guest_email,
+        guest_phone: booking.guest_phone,
+        room_name: booking.room_name,
+        check_in: booking.check_in,
+        check_out: booking.check_out,
+        total_nights: booking.total_nights,
+        total_amount: booking.total_amount,
+        number_of_guests: booking.number_of_guests,
       });
 
       return booking;

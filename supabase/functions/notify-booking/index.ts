@@ -16,6 +16,7 @@ interface BookingPayload {
   total_amount: number;
   number_of_guests: number;
   special_requests?: string;
+  action?: 'booking' | 'cancellation';
 }
 
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "rayaankhaaan@gmail.com";
@@ -179,6 +180,63 @@ function guestEmailHtml(b: BookingPayload) {
 </html>`;
 }
 
+function guestCancellationEmailHtml(b: BookingPayload) {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f5f0;font-family:'Georgia',serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f5f0;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:600px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#92400e,#b45309);padding:40px 32px;text-align:center;">
+          <h1 style="margin:0;color:#fff;font-size:28px;font-weight:300;letter-spacing:4px;">CASA RAIHAN</h1>
+          <p style="margin:8px 0 0;color:#fde68a;font-size:13px;letter-spacing:2px;">COORG, KARNATAKA</p>
+        </td></tr>
+        <tr><td style="padding:32px 32px 0;text-align:center;">
+          <div style="display:inline-block;background:#fee2e2;border:2px solid #f87171;border-radius:50px;padding:10px 24px;">
+            <span style="color:#b91c1c;font-size:14px;font-weight:600;">Booking Cancelled</span>
+          </div>
+          <h2 style="margin:20px 0 8px;font-size:22px;color:#1f2937;font-weight:400;">Hello ${b.guest_name},</h2>
+          <p style="margin:0;color:#6b7280;font-size:15px;">Your reservation at Casa Raihan has been cancelled successfully.</p>
+        </td></tr>
+        <tr><td style="padding:24px 32px;">
+          <table width="100%" style="background:#fffbf5;border:1px solid #fde68a;border-radius:12px;padding:24px;" cellpadding="0" cellspacing="0">
+            <tr><td style="padding-bottom:16px;border-bottom:1px solid #fde68a;">
+              <p style="margin:0;font-size:11px;color:#92400e;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Room</p>
+              <p style="margin:4px 0 0;font-size:18px;color:#1f2937;">${b.room_name}</p>
+            </td></tr>
+            <tr><td style="padding:16px 0;border-bottom:1px solid #fde68a;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="50%">
+                    <p style="margin:0;font-size:11px;color:#92400e;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Check-In</p>
+                    <p style="margin:4px 0 0;font-size:15px;color:#1f2937;">${formatDate(b.check_in)}</p>
+                  </td>
+                  <td width="50%">
+                    <p style="margin:0;font-size:11px;color:#92400e;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Check-Out</p>
+                    <p style="margin:4px 0 0;font-size:15px;color:#1f2937;">${formatDate(b.check_out)}</p>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+            <tr><td style="padding-top:16px;text-align:right;">
+              <p style="margin:0;font-size:11px;color:#92400e;letter-spacing:2px;text-transform:uppercase;font-weight:600;">Refund Amount</p>
+              <p style="margin:4px 0 0;font-size:28px;color:#92400e;font-weight:600;">${formatCurrency(b.total_amount)}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:24px 32px;border-top:1px solid #f3f4f6;text-align:center;">
+          <p style="margin:0 0 8px;color:#374151;font-size:14px;">If you have any questions, please contact us.</p>
+          <p style="margin:16px 0 0;color:#d1d5db;font-size:11px;">Casa Raihan · Coorg, Karnataka, India</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 function adminEmailHtml(b: BookingPayload) {
   return `
 <!DOCTYPE html>
@@ -214,6 +272,35 @@ function adminEmailHtml(b: BookingPayload) {
 </html>`;
 }
 
+function adminCancellationEmailHtml(b: BookingPayload) {
+  return `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <tr><td style="background:#b91c1c;padding:20px 28px;">
+          <h1 style="margin:0;color:#fff;font-size:18px;">🚫 Booking Cancelled — Casa Raihan</h1>
+        </td></tr>
+        <tr><td style="padding:28px;">
+          <table width="100%" cellpadding="6" cellspacing="0" style="font-size:14px;color:#374151;">
+            <tr><td style="color:#6b7280;width:140px;">Room</td><td style="font-weight:600;">${b.room_name}</td></tr>
+            <tr><td style="color:#6b7280;">Guest</td><td style="font-weight:600;">${b.guest_name}</td></tr>
+            <tr><td style="color:#6b7280;">Email</td><td><a href="mailto:${b.guest_email}" style="color:#2563eb;">${b.guest_email}</a></td></tr>
+            <tr><td style="color:#6b7280;">Phone</td><td><a href="tel:${b.guest_phone}" style="color:#2563eb;">${b.guest_phone}</a></td></tr>
+            <tr><td style="color:#6b7280;">Check-In</td><td>${formatDate(b.check_in)}</td></tr>
+            <tr><td style="color:#6b7280;">Check-Out</td><td>${formatDate(b.check_out)}</td></tr>
+            <tr><td style="color:#6b7280;font-weight:600;font-size:15px;">Refund Amount</td><td style="font-weight:700;font-size:18px;color:#b91c1c;">${formatCurrency(b.total_amount)}</td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ── SMS templates ─────────────────────────────────────────────────────────────
 
 function guestSMS(b: BookingPayload) {
@@ -222,6 +309,14 @@ function guestSMS(b: BookingPayload) {
 
 function adminSMS(b: BookingPayload) {
   return `New Booking! ${b.room_name}\nGuest: ${b.guest_name}\nPhone: ${b.guest_phone}\n${formatDate(b.check_in)} → ${formatDate(b.check_out)} (${b.total_nights}N)\nTotal: ${formatCurrency(b.total_amount)}`;
+}
+
+function guestCancellationSMS(b: BookingPayload) {
+  return `Casa Raihan: Hi ${b.guest_name.split(" ")[0]}, your booking for ${b.room_name} has been cancelled successfully.`;
+}
+
+function adminCancellationSMS(b: BookingPayload) {
+  return `Booking Cancelled: ${b.room_name}\nGuest: ${b.guest_name}\n${formatDate(b.check_in)} → ${formatDate(b.check_out)}`;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -237,15 +332,20 @@ serve(async (req) => {
     const tasks: Promise<any>[] = [];
 
     // Emails
-    tasks.push(sendEmail(booking.guest_email, "✅ Your Casa Raihan booking is confirmed!", guestEmailHtml(booking)));
-    tasks.push(sendEmail(ADMIN_EMAIL, `🏡 New Booking: ${booking.room_name} — ${booking.guest_name}`, adminEmailHtml(booking)));
+    if (booking.action === 'cancellation') {
+      tasks.push(sendEmail(booking.guest_email, "🚫 Your Casa Raihan booking has been cancelled", guestCancellationEmailHtml(booking)));
+      tasks.push(sendEmail(ADMIN_EMAIL, `🚫 Booking Cancelled: ${booking.room_name} — ${booking.guest_name}`, adminCancellationEmailHtml(booking)));
+    } else {
+      tasks.push(sendEmail(booking.guest_email, "✅ Your Casa Raihan booking is confirmed!", guestEmailHtml(booking)));
+      tasks.push(sendEmail(ADMIN_EMAIL, `🏡 New Booking: ${booking.room_name} — ${booking.guest_name}`, adminEmailHtml(booking)));
+    }
 
     // SMS
     if (booking.guest_phone) {
-      tasks.push(sendSMS(booking.guest_phone, guestSMS(booking)));
+      tasks.push(sendSMS(booking.guest_phone, booking.action === 'cancellation' ? guestCancellationSMS(booking) : guestSMS(booking)));
     }
     if (ADMIN_PHONE) {
-      tasks.push(sendSMS(ADMIN_PHONE, adminSMS(booking)));
+      tasks.push(sendSMS(ADMIN_PHONE, booking.action === 'cancellation' ? adminCancellationSMS(booking) : adminSMS(booking)));
     }
 
     const results = await Promise.allSettled(tasks);
