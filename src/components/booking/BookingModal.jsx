@@ -222,12 +222,19 @@ export default function BookingModal({ room, onClose }) {
     : 0;
 
   const totalAmount = calculateTotal();
+  const scrollRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (error && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [error]);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div ref={scrollRef} className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
           <div>
             <h2 className="text-2xl font-light text-gray-800">{room.name}</h2>
             <p className="text-amber-700 font-medium text-sm">
