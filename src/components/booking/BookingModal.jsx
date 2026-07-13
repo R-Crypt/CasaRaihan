@@ -41,8 +41,7 @@ export default function BookingModal({ room, onClose }) {
           guest_email: user.email,
         }));
       } catch (error) {
-        // User not logged in - redirect to login
-        setError('Please log in to make a booking');
+        // User not logged in, which is perfectly fine for guest mode.
       }
     };
     loadUser();
@@ -154,12 +153,6 @@ export default function BookingModal({ room, onClose }) {
     setError('');
 
     // Validation
-    if (!currentUser) {
-      setError('Please log in to make a booking');
-      auth.redirectToLogin();
-      return;
-    }
-
     if (!formData.guest_phone) {
       setError('Please enter your phone number');
       return;
