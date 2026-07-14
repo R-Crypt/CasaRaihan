@@ -116,15 +116,7 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full">
-                <Coffee className="w-8 h-8 text-amber-700" />
-              </div>
-              <h3 className="text-xl font-medium text-gray-800">Coffee Plantation</h3>
-              <p className="text-gray-600">
-                Experience the authentic coffee planter lifestyle amidst lush plantations
-              </p>
-            </div>
+
             
             <div className="text-center space-y-4 p-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
