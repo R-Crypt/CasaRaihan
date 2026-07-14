@@ -4,6 +4,7 @@ import { createPageUrl } from '../utils';
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Coffee, Wifi, Car, UtensilsCrossed, Mountain, Sun } from 'lucide-react';
 import SEO from '@/components/SEO';
+import HomeGallery from '@/components/ui/HomeGallery';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -201,6 +202,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <HomeGallery />
 
       {/* CTA Section */}
       <section className="relative py-32 px-4">
